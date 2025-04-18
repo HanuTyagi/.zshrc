@@ -1,0 +1,121 @@
+# ─────────────────────────────────────────────────────────────
+# 🛠 ZSH Configuration by Bhavishya Tyagi — Enhanced Version 🛠
+# ─────────────────────────────────────────────────────────────
+
+# 1. Set ZSH options
+export ZSH="$HOME/.oh-my-zsh"
+export TERM="xterm-256color"
+export EDITOR="nano"
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export PATH="$PATH:$HOME/.local/bin:$HOME/bin:/sbin:/usr/sbin:/usr/local/bin"
+
+# 2. Oh-My-Zsh Theme & Plugins
+ZSH_THEME="agnoster"  # Change this if you want something else
+plugins=(
+  git
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+  extract
+  encode64
+  sudo
+)
+
+source $ZSH/oh-my-zsh.sh
+
+# 3. Syntax Highlighting & Autosuggestions (must be after OMZ)
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# 4. Prompt & Right Prompt Customization
+autoload -Uz vcs_info
+precmd() { vcs_info }
+
+zstyle ':vcs_info:git:*' formats ' %F{magenta} %b%f'
+
+# Custom prompt: Username@Host on one line, working directory on the next
+PROMPT='%F{green}┌─%F{cyan}%n@%m%f
+%F{green}├─%F{yellow}%~%f
+%F{green}└─▶ %F{reset}${vcs_info_msg_0_} '
+
+# Custom IP prompt showing ETH, VPN, and Wi-Fi if available
+get_ip() {
+  IP1=$(ip -4 addr | grep -v 127.0.0.1 | grep -v secondary | grep eth0 | grep -Po "inet \K[\d.]+")
+  IP2=$(ip -4 addr | grep -v 127.0.0.1 | grep -v secondary | grep tun0 | grep -Po "inet \K[\d.]+")
+  IP3=$(ip -4 addr | grep -v 127.0.0.1 | grep -v secondary | grep wlan0 | grep -Po "inet \K[\d.]+")
+
+  [[ $IP2 ]] && VPN="%F{green}─🮤 🔒%F{yellow}$IP2%F{green}🮥" || VPN=""
+  [[ $IP1 ]] && LOCAL="%F{green}─🮤🌐%F{cyan}$IP1%F{green}🮥" || LOCAL=""
+  [[ $IP3 ]] && WIFI="%F{green}─🮤 🕸️%F{red}$IP3%F{green}🮥" || WIFI=""
+
+  echo "$VPN $LOCAL $WIFI"
+}
+
+RPROMPT='$(get_ip)%f'
+
+
+# 5. Useful Aliases
+alias ls='ls --color=auto'
+alias updateall="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y"
+alias reload="source ~/.zshrc && echo '🔁 Reloaded .zshrc!'"
+alias c="clear"
+alias mkdir="mkdir -p"
+alias h="history"
+
+# 6. Universal Extract Function
+extract () {
+  if [ -f "$1" ] ; then
+    case "$1" in
+      *.tar.bz2)   tar xvjf "$1"    ;;
+      *.tar.gz)    tar xvzf "$1"    ;;
+      *.bz2)       bunzip2 "$1"     ;;
+      *.rar)       unrar x "$1"     ;;
+      *.gz)        gunzip "$1"      ;;
+      *.tar)       tar xvf "$1"     ;;
+      *.tbz2)      tar xvjf "$1"    ;;
+      *.tgz)       tar xvzf "$1"    ;;
+      *.zip)       unzip "$1"       ;;
+      *.Z)         uncompress "$1"  ;;
+      *.7z)        7z x "$1"        ;;
+      *)           echo "'$1' cannot be extracted via extract()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+# 7. FZF Integration (if installed)
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# 8. Zoxide Integration (smart cd)
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
+
+# 9. History Settings
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.zsh_history
+
+# 10. Misc Enhancements
+setopt autocd             # Enter folder name to cd into it
+setopt correct            # Auto correct small typos in commands
+setopt extended_glob
+setopt hist_ignore_dups   # Ignore duplicate commands
+setopt share_history      # Share history across sessions
+
+# Rainbow ASCII Welcome Banner with Emojis
+echo ""
+hyfetch
+echo ""
+echo "\033[1;31m██████╗ \033[1;33m███████╗\033[1;32m██╗   ██╗\033[1;36m██╗\033[1;34m██╗     \033[1;35m██╗  ██╗ \033[1;31m█████╗ \033[1;33m███╗   ██╗\033[1;32m██╗   ██╗\033[0m"
+echo "\033[1;31m██╔══██╗\033[1;33m██╔════╝\033[1;32m██║   ██║\033[1;36m██║\033[1;34m██║     \033[1;35m██║  ██║\033[1;31m██╔══██╗\033[1;33m████╗  ██║\033[1;32m██║   ██║\033[0m"
+echo "\033[1;31m██║  ██║\033[1;33m█████╗  \033[1;32m██║   ██║\033[1;36m██║\033[1;34m██║     \033[1;35m███████║\033[1;31m███████║\033[1;33m██╔██╗ ██║\033[1;32m██║   ██║\033[0m"
+echo "\033[1;31m██║  ██║\033[1;33m██╔══╝  \033[1;32m╚██╗ ██╔╝\033[1;36m██║\033[1;34m██║     \033[1;35m██╔══██║\033[1;31m██╔══██║\033[1;33m██║╚██╗██║\033[1;32m██║   ██║\033[0m"
+echo "\033[1;31m██████╔╝\033[1;33m███████╗\033[1;32m ╚████╔╝ \033[1;36m██║\033[1;34m███████╗\033[1;35m██║  ██║\033[1;31m██║  ██║\033[1;33m██║ ╚████║\033[1;32m╚██████╔╝\033[0m"
+echo "\033[1;31m╚═════╝ \033[1;33m╚══════╝\033[1;32m  ╚═══╝  \033[1;36m╚═╝\033[1;34m╚══════╝\033[1;35m╚═╝  ╚═╝\033[1;31m╚═╝  ╚═╝\033[1;33m╚═╝  ╚═══╝\033[1;32m ╚═════╝ \033[0m"
+echo ""
+echo "🌟 \033[1;36mWelcome back, hanu! \033[1;35mReady to rock the terminal? 🚀\033[0m"
+echo ""
+
+# ─────────────────────────────────────────────────────────────
